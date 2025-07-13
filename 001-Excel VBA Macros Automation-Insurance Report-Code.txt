@@ -1,0 +1,386 @@
+Sub pvtStateNew()
+    
+    Call deletePivotTableSheet
+    Call deleteBarChartSheet
+    
+    Sheets("Insurance").Select
+    Sheets("Insurance").Activate
+    
+    Range("A1:I501").Select
+    Range("F12").Activate
+    ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+        "Insurance!R1C1:R501C9", Version:=xlPivotTableVersion15).CreatePivotTable _
+        TableDestination:="", TableName:="PivotTable2", DefaultVersion:= _
+        xlPivotTableVersion15
+    ActiveSheet.PivotTableWizard TableDestination:=ActiveSheet.Cells(3, 1)
+    ActiveSheet.Cells(3, 1).Select
+    With ActiveSheet.PivotTables("PivotTable2").PivotFields("State")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    ActiveSheet.PivotTables("PivotTable2").AddDataField ActiveSheet.PivotTables( _
+        "PivotTable2").PivotFields("InsuredValue"), "Sum of InsuredValue", xlSum
+    Range("B8").Select
+    ActiveSheet.PivotTables("PivotTable2").PivotFields("State").AutoSort _
+        xlDescending, "Sum of InsuredValue", ActiveSheet.PivotTables("PivotTable2"). _
+        PivotColumnAxis.PivotLines(1), 1
+        
+        MsgBox ("Pivot table created successfully !")
+        Call copyPvt
+        'Call sortDesc
+End Sub
+
+
+Sub copyPvt()
+    Dim shtName As String
+    shtName = ActiveSheet.Name
+    Sheets(shtName).Select
+    
+    
+    Range("A3:B14").Select
+    'Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    Range("D3").Select
+    ActiveSheet.Paste
+    
+    Range("G3").Select
+    ActiveSheet.Paste
+    
+    Range("J3").Select
+    ActiveSheet.Paste
+        
+        
+        Dim pt As PivotTable
+        
+        For Each pt In ActiveSheet.PivotTables
+                I = I + 1
+                Cells(I, 14).Value = pt.Name
+        Next
+            
+        
+        Dim pvt2 As String
+        Dim pvt3 As String
+        Dim pvt4 As String
+        
+        pvt2 = Range("N3").Value
+        pvt3 = Range("N2").Value
+        pvt4 = Range("N1").Value
+        
+        
+        ActiveSheet.PivotTables(pvt2).PivotFields("State").Orientation = _
+        xlHidden
+    With ActiveSheet.PivotTables(pvt2).PivotFields("Location")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    
+    Range("J12").Select
+    ActiveSheet.PivotTables(pvt3).PivotFields("State").Orientation = _
+        xlHidden
+    With ActiveSheet.PivotTables(pvt3).PivotFields("Region")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    ActiveWindow.SmallScroll ToRight:=3
+    ActiveSheet.PivotTables(pvt4).PivotSelect "State[All]", xlLabelOnly + _
+        xlFirstRow, True
+    ActiveSheet.PivotTables(pvt4).PivotFields("State").Orientation = _
+        xlHidden
+    
+    With ActiveSheet.PivotTables(pvt4).PivotFields("BusinessType")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    Cells.Select
+
+    Selection.Columns.AutoFit
+    Range("A1").Select
+    
+    Range("A3").Value = "State"
+    
+    Range("D3").Value = "Location"
+    
+    Range("G3").Value = "Region"
+    
+    Range("J3").Value = "BusinessType"
+            
+    MsgBox ("Pivot table copied successfully !")
+    
+    
+    Range("E5").Select
+    ActiveSheet.PivotTables(pvt2).PivotFields("Location").AutoSort _
+        xlDescending, "Sum of InsuredValue", ActiveSheet.PivotTables(pvt2). _
+        PivotColumnAxis.PivotLines(1), 1
+        
+    Range("H6").Select
+    ActiveSheet.PivotTables(pvt3).PivotFields("Region").AutoSort _
+        xlDescending, "Sum of InsuredValue", ActiveSheet.PivotTables(pvt3). _
+        PivotColumnAxis.PivotLines(1), 1
+        
+    Range("K8").Select
+    ActiveSheet.PivotTables(pvt4).PivotFields("BusinessType").AutoSort _
+        xlDescending, "Sum of InsuredValue", ActiveSheet.PivotTables(pvt4). _
+        PivotColumnAxis.PivotLines(1), 1
+        
+        
+'    Columns("N:N").Select
+    ActiveSheet.Name = "PivotTable"
+    
+    
+    Call deleteColN
+    Call piChartCreation
+End Sub
+Sub deleteColN()
+    Columns("N:N").Select
+    Selection.Delete Shift:=xlToLeft
+    Range("A1").Select
+End Sub
+Sub deletePivotTableSheet()
+Application.DisplayAlerts = False
+
+'    Sheets("PivotTable").Select
+'    ActiveWindow.SelectedSheets.Delete
+    
+    
+    For Each Sheet In ActiveWorkbook.Worksheets
+        
+        If Sheet.Name = "PivotTable" Then
+          Sheet.Delete
+        End If
+     
+        
+    Next Sheet
+
+Application.DisplayAlerts = True
+End Sub
+
+'///
+Sub deleteBarChartSheet()
+Application.DisplayAlerts = False
+
+'    Sheets("PivotTable").Select
+'    ActiveWindow.SelectedSheets.Delete
+    
+    
+    For Each Sheet In ActiveWorkbook.Worksheets
+        
+
+        If Sheet.Name = "BarChart" Then
+          Sheet.Delete
+        End If
+        
+    Next Sheet
+
+Application.DisplayAlerts = True
+End Sub
+
+Sub piChartCreation()
+      
+    Range("D3:E5").Select
+    ActiveSheet.Shapes.AddChart2(262, xl3DPie).Select
+    ActiveChart.SetSourceData Source:=Range("PivotTable!$D$3:$E$6")
+    
+      Dim pt As PivotTable
+        
+        For Each pt In ActiveSheet.PivotTables
+                I = I + 1
+                Cells(I, 14).Value = pt.Name
+        Next
+      
+ 
+    ActiveSheet.Shapes("Chart 1").IncrementLeft -38.25
+    ActiveSheet.Shapes("Chart 1").IncrementTop 60.75
+    ActiveSheet.Shapes("Chart 1").IncrementLeft 22.5
+    ActiveSheet.Shapes("Chart 1").IncrementTop 13.5
+    Call deleteColN
+    Call monthYearBack
+End Sub
+Sub monthYear()
+    
+    Sheets("Insurance").Select
+    Sheets("Insurance").Activate
+    Range("J1").Value = "Month"
+    Range("K1").Value = "Year"
+    
+    
+    Range("J2").Select
+    ActiveCell.FormulaR1C1 = "=TEXT(RC[-8],""MMM"")"
+    Range("K2").Select
+    ActiveCell.FormulaR1C1 = "=YEAR(RC[-9])"
+    
+    Range("I2").Select
+    Selection.End(xlDown).Select
+    rowNumber = ActiveCell.Row
+    
+    'Range("J501").Select
+    Range("J" & rowNumber).Select
+    
+    ActiveCell.FormulaR1C1 = "1"
+    
+    'Range("K501").Select
+    Range("K" & rowNumber).Select
+    ActiveCell.FormulaR1C1 = "1"
+    
+    Selection.End(xlUp).Select
+    Range("J2:K2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.FillDown
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Range("J1").Select
+    Selection.End(xlUp).Select
+    
+    'Range("A1:K501").Select
+    Range("A1:" & "K501" & rowNumber).Select
+'    Range("F482").Activate
+'    Application.CutCopyMode = False
+    
+    
+    ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+        "Insurance!R1C1:R501C11", Version:=xlPivotTableVersion15).CreatePivotTable _
+        TableDestination:="", TableName:="PivotTable92", DefaultVersion:= _
+        xlPivotTableVersion15
+    ActiveSheet.PivotTableWizard TableDestination:=ActiveSheet.Cells(3, 1)
+    ActiveSheet.Cells(3, 1).Select
+    With ActiveSheet.PivotTables("PivotTable92").PivotFields("Year")
+        .Orientation = xlPageField
+        .Position = 1
+    End With
+    With ActiveSheet.PivotTables("PivotTable92").PivotFields("Month")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    
+    ActiveSheet.PivotTables("PivotTable92").AddDataField ActiveSheet.PivotTables( _
+        "PivotTable92").PivotFields("Month"), "Count of Month", xlCount
+    Range("B6").Select
+    ActiveSheet.PivotTables("PivotTable92").PivotFields("Month").AutoSort _
+        xlDescending, "Count of Month", ActiveSheet.PivotTables("PivotTable92"). _
+        PivotColumnAxis.PivotLines(1), 1
+    Range("A3").Select
+    ActiveSheet.PivotTables("PivotTable92").CompactLayoutRowHeader = "Month"
+    Range("A3:B3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Range("A3:B14").Select
+    ActiveSheet.Shapes.AddChart2(216, xlBarClustered).Select
+    ActiveChart.SetSourceData Source:=Range("Sheet37!$A$3:$B$15")
+    Range("M11").Select
+    Sheets("Sheet37").Select
+    Sheets("Sheet37").Name = "BarChart"
+    ActiveWorkbook.Save
+End Sub
+
+''//////////
+Sub monthYearBack()
+    
+    Sheets("Insurance").Select
+    Sheets("Insurance").Activate
+    
+    
+    Range("J2").Select
+    ActiveCell.FormulaR1C1 = "=TEXT(RC[-8],""MMM"")"
+    Range("K2").Select
+    ActiveCell.FormulaR1C1 = "=YEAR(RC[-9])"
+    Range("I2").Select
+    Selection.End(xlDown).Select
+    Range("J501").Select
+    ActiveCell.FormulaR1C1 = "1"
+    Range("K501").Select
+    ActiveCell.FormulaR1C1 = "1"
+    Range("K500").Select
+    Selection.End(xlUp).Select
+    Range("J2:K2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.FillDown
+    
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+    
+    '///////////
+    
+    Range("A1:K501").Select
+    
+    
+    Range("F12").Activate
+    ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+        "Insurance!R1C1:R501C11", Version:=xlPivotTableVersion15).CreatePivotTable _
+        TableDestination:="", TableName:="PivotTable93", DefaultVersion:= _
+        xlPivotTableVersion15
+    ActiveSheet.PivotTableWizard TableDestination:=ActiveSheet.Cells(3, 1)
+    ActiveSheet.Cells(3, 1).Select
+    With ActiveSheet.PivotTables("PivotTable93").PivotFields("Year")
+        .Orientation = xlPageField
+        .Position = 1
+    End With
+    With ActiveSheet.PivotTables("PivotTable93").PivotFields("Month")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    ActiveSheet.PivotTables("PivotTable93").AddDataField ActiveSheet.PivotTables( _
+        "PivotTable93").PivotFields("Month"), "Count of Month", xlCount
+    Range("B8").Select
+        With ActiveSheet.PivotTables("PivotTable93").PivotFields("Month")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    ActiveSheet.PivotTables("PivotTable93").PivotFields("Month").AutoSort _
+        xlDescending, "Count of Month", ActiveSheet.PivotTables("PivotTable93"). _
+        PivotColumnAxis.PivotLines(1), 1
+    Range("A3").Select
+    ActiveSheet.PivotTables("PivotTable93").CompactLayoutRowHeader = "Month"
+    Range("A3:B3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Range("A3:B14").Select
+    ActiveSheet.Shapes.AddChart2(216, xlBarClustered).Select
+    'ActiveChart.SetSourceData Source:=Range("Sheet40!$A$3:$B$15")
+    
+    ActiveSheet.Name = "BarChart"
+    ActiveWorkbook.Save
+
+MsgBox ("Your Task Has Been Done ! Enjoy !!!!!!")
+    
+    End Sub
+
+Sub pvt()
+'
+' pvt Macro
+'
+
+'
+    Range("A1:K501").Select
+    Range("F12").Activate
+    ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+        "Insurance!R1C1:R501C11", Version:=xlPivotTableVersion15).CreatePivotTable _
+        TableDestination:="", TableName:="PivotTable93", DefaultVersion:= _
+        xlPivotTableVersion15
+    ActiveSheet.PivotTableWizard TableDestination:=ActiveSheet.Cells(3, 1)
+    ActiveSheet.Cells(3, 1).Select
+    With ActiveSheet.PivotTables("PivotTable93").PivotFields("Year")
+        .Orientation = xlPageField
+        .Position = 1
+    End With
+    With ActiveSheet.PivotTables("PivotTable93").PivotFields("Month")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    ActiveSheet.PivotTables("PivotTable93").AddDataField ActiveSheet.PivotTables( _
+        "PivotTable93").PivotFields("Month"), "Count of Month", xlCount
+    Range("B8").Select
+        With ActiveSheet.PivotTables("PivotTable93").PivotFields("Month")
+        .Orientation = xlRowField
+        .Position = 1
+    End With
+    ActiveSheet.PivotTables("PivotTable93").PivotFields("Month").AutoSort _
+        xlDescending, "Count of Month", ActiveSheet.PivotTables("PivotTable93"). _
+        PivotColumnAxis.PivotLines(1), 1
+    Range("A3").Select
+    ActiveSheet.PivotTables("PivotTable93").CompactLayoutRowHeader = "Month"
+    Range("A3:B3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Range("A3:B14").Select
+    ActiveSheet.Shapes.AddChart2(216, xlBarClustered).Select
+    'ActiveChart.SetSourceData Source:=Range("Sheet40!$A$3:$B$15")
+End Sub
